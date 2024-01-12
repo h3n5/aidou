@@ -1,6 +1,6 @@
 <template>
   <div class="cpt-expression" @click="buildMarkLink">
-    <img v-show="src" :src="src" />
+    <img ref="img" v-show="src" :src="src" />
     <loading v-show="!src"></loading>
     <span class="collect-btn" :class="collectClass" @click.stop="updateExpression"></span>
   </div>
@@ -93,21 +93,58 @@ export default {
         })
       })
     },
-
+    copyToClipboard(resolve) {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      const testImg = this.$refs.img
+      img.crossOrigin = 'Anonymous'
+      img.src = testImg.src
+      console.log('AutoConsole: copyToClipboard -> testImg.width', testImg.width, testImg.height, img)
+      img.onload = () => {
+        canvas.width = img.width
+        canvas.height = img.height
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+        ctx.drawImage(img, 0, 0)
+        canvas.toBlob(async (blob) => {
+          const data = [
+            new ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ]
+          await navigator.clipboard.write(data).then(
+            () => {
+              resolve()
+              this.$swal('复制成功', { button: false, timer: 1000 })
+              console.log('Copied to clipboard successfully!')
+            },
+            () => {
+              this.$swal('复制失败', { button: false, timer: 1000 })
+              console.error('Unable to write to clipboard.')
+            }
+          )
+        })
+      }
+    },
     fetchMarkLink() {
       return new Promise((resolve, reject) => {
         if (!this.src) return reject()
         if (!this.usePicBed) {
           return resolve(this.exp.link)
         }
-        this.$swal('生成图床链接中......', { button: false })
-        crun.$emit('uniform-url', this.src).then(({ url, err = '图床服务出错!', server }) => {
-          if (!url) {
-            this.picBedErrHandler(server, err)
-            return reject()
-          }
-          resolve(url)
-        })
+        if (this.$root.APP_CONF.copyToClipboard) {
+          this.$swal('复制到剪切板中......', { button: false, timer: 1000 })
+          this.copyToClipboard(resolve)
+        } else {
+          this.$swal('生成图床链接中......', { button: false })
+          crun.$emit('uniform-url', this.src).then(({ url, err = '图床服务出错!', server }) => {
+            if (!url) {
+              this.picBedErrHandler(server, err)
+              return reject()
+            }
+            resolve(url)
+          })
+        }
       })
     },
 

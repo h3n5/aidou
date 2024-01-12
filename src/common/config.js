@@ -8,5 +8,6 @@ export default {
     code: 'Backslash',
   },
   transformUrl: 'github.com',
+  copyToClipboard: true,
 }
 export const corsAnywhereUrl = 'http://100.69.70.86:5050/'

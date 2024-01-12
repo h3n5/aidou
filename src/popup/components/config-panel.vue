@@ -32,6 +32,14 @@
           </label>
         </div>
       </li>
+      <li class="config-item">
+        <span class="config-label">复制图片到剪贴板</span>
+        <div class="config-content">
+          <label>
+            <input type="checkbox" v-model="config.copyToClipboard" />
+          </label>
+        </div>
+      </li>
     </ul>
   </section>
 </template>
